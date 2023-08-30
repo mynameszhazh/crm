@@ -10,8 +10,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import java.text.SimpleDateFormat;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +34,7 @@ public class UserController {
     }
 
     @RequestMapping("/settings/qx/user/login.do")
-    public @ResponseBody Object login(String loginAct, String loginPwd, String isRemPwd, HttpServletRequest request) {
+    public @ResponseBody Object login(String loginAct, String loginPwd, String isRemPwd, HttpServletRequest request, HttpServletResponse response, HttpSession session) {
         //封装参数
         Map<String, Object> map = new HashMap<>();
         map.put("loginAct", loginAct);
@@ -64,9 +66,44 @@ public class UserController {
             } else {
                 //登录成功
                 returnObject.setCode(Contants.RESULT_OBJECT_SUCCESS_CODE);
+                // 保存当前登录用户数据
+                session.setAttribute(Contants.SESSION_USER, user);
+
+                //如果需要记住密码，则往外写cookie
+                if ("true".equals(isRemPwd)) {
+                    Cookie c1 = new Cookie("loginAct", user.getLoginAct());
+                    c1.setMaxAge(10 * 24 * 60 * 60);
+                    response.addCookie(c1);
+                    Cookie c2 = new Cookie("loginPwd", user.getLoginPwd());
+                    c2.setMaxAge(10 * 24 * 60 * 60);
+                    response.addCookie(c2);
+                } else {
+                    //把没有过期cookie删除
+                    Cookie c1 = new Cookie("loginAct", "1");
+                    c1.setMaxAge(0);
+                    response.addCookie(c1);
+                    Cookie c2 = new Cookie("loginPwd", "1");
+                    c2.setMaxAge(0);
+                    response.addCookie(c2);
+                }
             }
         }
 
         return returnObject;
+    }
+
+    @RequestMapping("/settings/qx/user/logout.do")
+    public String logout(HttpServletResponse response, HttpSession session) {
+        //清空cookie
+        Cookie c1 = new Cookie("loginAct", "1");
+        c1.setMaxAge(0);
+        response.addCookie(c1);
+        Cookie c2 = new Cookie("loginPwd", "1");
+        c2.setMaxAge(0);
+        response.addCookie(c2);
+        //销毁session
+        session.invalidate();
+        //跳转到首页
+        return "redirect:/";
     }
 }

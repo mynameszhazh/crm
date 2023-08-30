@@ -1,3 +1,4 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
     String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() + "/";
@@ -11,6 +12,14 @@
     <script type="text/javascript" src="jquery/bootstrap_3.3.0/js/bootstrap.min.js"></script>
     <script type="text/javascript">
         $(function () {
+            // 回车键事件
+            $(window).keydown(function (e) {
+                //如果按的是回车键，则提交登录请求
+                if (e.keyCode == 13) {
+                    $("#loginBtn").click();
+                }
+            });
+
             //给"登录"按钮添加单击事件
             $("#loginBtn").click(function () {
                 //收集参数
@@ -44,6 +53,12 @@
                             //提示信息
                             $("#msg").text(data.message);
                         }
+                    },
+                    beforeSend: function () {//当ajax向后台发送请求之前，会自动执行本函数；
+                        //该函数的返回值能够决定ajax是否真正向后台发送请求：
+                        //如果该函数返回true,则ajax会真正向后台发送请求；否则，如果该函数返回false，则ajax放弃向后台发送请求。
+                        $("#msg").text("正在努力验证....");
+                        return true;
                     }
                 });
             });
@@ -67,15 +82,24 @@
         <form action="workbench/index.html" class="form-horizontal" role="form">
             <div class="form-group form-group-lg">
                 <div style="width: 350px;">
-                    <input class="form-control" id="loginAct" type="text" placeholder="用户名" value="zs">
+                    <input class="form-control" id="loginAct" type="text" placeholder="用户名"
+                           value="${cookie.loginAct.value}">
                 </div>
                 <div style="width: 350px; position: relative;top: 20px;">
-                    <input class="form-control" id="loginPwd" type="password" placeholder="密码" value="ys123">
+                    <input class="form-control" id="loginPwd" type="password" placeholder="密码"
+                           value="${cookie.loginPwd.value}">
                 </div>
                 <div class="checkbox" style="position: relative;top: 30px; left: 10px;">
                     <label>
-                        <input type="checkbox" id="isRemPwd"> 十天内免登录
+                        <c:if test="${not empty cookie.loginAct and not empty cookie.loginPwd}">
+                            <input type="checkbox" id="isRemPwd" checked>
+                        </c:if>
+                        <c:if test="${empty cookie.loginAct or empty cookie.loginPwd}">
+                            <input type="checkbox" id="isRemPwd">
+                        </c:if>
+                        十天内免登录
                     </label>
+
                     &nbsp;&nbsp;
                     <span id="msg" style="color: red"></span>
                 </div>

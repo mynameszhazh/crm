@@ -14,7 +14,7 @@
         <property name="username" value="root"/>
         <property name="password" value="3.1415926535xqza"/>
         <property name="url" value="jdbc:mysql://127.0.0.1:3306/CRM2023?useSSL=false&amp;useUnicode=true&amp;characterEncoding=UTF-8"/>
-    </bean>
+        </bean>
     <!-- 配置SqlSessionFactory -->
     <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
         <!-- 必须注入属性dataSource -->
