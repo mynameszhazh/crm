@@ -62,4 +62,11 @@ public interface ActivityMapper {
      * 根据条件查询数据总条数
      */
     int selectCountOfActivityByCondition(Map<String, Object> map);
+
+    /**
+     * 根据id数组删除数据
+     */
+    int deleteActivityByIds(String[] var1);
+
+    Activity selectActivityById(String var1);
 }

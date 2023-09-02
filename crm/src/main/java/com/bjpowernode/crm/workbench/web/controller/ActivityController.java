@@ -9,7 +9,6 @@ import com.bjpowernode.crm.settings.service.UserService;
 import com.bjpowernode.crm.workbench.domain.Activity;
 import com.bjpowernode.crm.workbench.service.ActivityService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jca.cci.CciOperationNotSupportedException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -20,7 +19,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 @Controller
 @RequestMapping("/workbench/activity")
@@ -67,25 +65,51 @@ public class ActivityController {
         return returnObject;
     }
 
-   @RequestMapping("/queryActivityByConditionForPage.do")
-    public @ResponseBody Object queryActivityByConditionForPage(String name,String owner,String startDate,String endDate,
+    @RequestMapping("/queryActivityByConditionForPage.do")
+    public @ResponseBody Object queryActivityByConditionForPage(String name, String owner, String startDate, String endDate,
+                                                                int pageNo, int pageSize) {
+        //封装参数
+        Map<String, Object> map = new HashMap<>();
+        map.put("name", name);
+        map.put("owner", owner);
+        map.put("startDate", startDate);
+        map.put("endDate", endDate);
+        map.put("beginNo", (pageNo - 1) * pageSize);
+        map.put("pageSize", pageSize);
+        //调用service层方法，查询数据
+        List<Activity> activityList = activityService.queryActivityByConditionForPage(map);
+        int totalRows = activityService.queryCountOfActivityByCondition(map);
+        //根据查询结果结果，生成响应信息
+        Map<String, Object> retMap = new HashMap<>();
+        retMap.put("activityList", activityList);
+        retMap.put("totalRows", totalRows);
+        return retMap;
+    }
 
-                                                                int pageNo,int pageSize){
-       //封装参数
-       Map<String,Object> map=new HashMap<>();
-       map.put("name",name);
-       map.put("owner",owner);
-       map.put("startDate",startDate);
-       map.put("endDate",endDate);
-       map.put("beginNo",(pageNo-1)*pageSize);
-       map.put("pageSize",pageSize);
-       //调用service层方法，查询数据
-       List<Activity> activityList=activityService.queryActivityByConditionForPage(map);
-       int totalRows=activityService.queryCountOfActivityByCondition(map);
-       //根据查询结果结果，生成响应信息
-       Map<String,Object> retMap=new HashMap<>();
-       retMap.put("activityList",activityList);
-       retMap.put("totalRows",totalRows);
-       return retMap;
+    @RequestMapping("/deleteActivityIds.do")
+    public @ResponseBody Object deleteActivityByIds(String[] id) {
+        ReturnObject returnObject = new ReturnObject();
+        try {
+            int ret = activityService.deleteActivityByIds(id);
+            if (ret > 0) {
+                returnObject.setCode(Contants.RESULT_OBJECT_SUCCESS_CODE);
+            } else {
+                returnObject.setCode(Contants.RESULT_OBJECT_ERROR_CODE);
+                returnObject.setMessage("系统忙绿");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            returnObject.setCode(Contants.RESULT_OBJECT_ERROR_CODE);
+            returnObject.setMessage("系统忙绿");
+        }
+        return returnObject;
+    }
+
+    @RequestMapping("/queryActivityById.do")
+    public @ResponseBody Object queryActivityById(String id){
+        //调用service层方法，查询市场活动
+        Activity activity=activityService.queryActivityById(id);
+        //根据查询结果，返回响应信息
+        return activity;
     }
 }

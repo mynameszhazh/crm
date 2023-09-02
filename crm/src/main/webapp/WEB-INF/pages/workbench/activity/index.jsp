@@ -161,6 +161,42 @@
                     $("#chckAll").prop("checked", false);
                 }
             });
+            //给"删除"按钮添加单击事件
+            $("#deleteActivityBtn").click(function () {
+                //收集参数
+                //获取列表中所有被选中的checkbox
+                var chekkedIds=$("#tBody input[type='checkbox']:checked");
+                if(chekkedIds.size()==0){
+                    alert("请选择要删除的市场活动");
+                    return;
+                }
+
+                if(window.confirm("确定删除吗？")){
+                    var ids="";
+                    $.each(chekkedIds,function () {//id=xxxx&id=xxx&.....&id=xxx&
+                        ids+="id="+this.value+"&";
+                    });
+                    ids=ids.substr(0,ids.length-1);//id=xxxx&id=xxx&.....&id=xxx
+                    console.log('ids', ids)
+
+                    //发送请求
+                    $.ajax({
+                        url:'workbench/activity/deleteActivityIds.do',
+                        data:ids,
+                        type:'post',
+                        dataType:'json',
+                        success:function (data) {
+                            if(data.code=="1"){
+                                //刷新市场活动列表,显示第一页数据,保持每页显示条数不变
+                                queryActivityByConditionForPage(1,$("#demo_pag1").bs_pagination('getOption', 'rowsPerPage'));
+                            }else{
+                                //提示信息
+                                alert(data.message);
+                            }
+                        }
+                    });
+                }
+            });
 
         });
 
@@ -469,7 +505,7 @@
                 <button type="button" class="btn btn-default" data-toggle="modal" data-target="#editActivityModal"><span
                         class="glyphicon glyphicon-pencil"></span> 修改
                 </button>
-                <button type="button" class="btn btn-danger"><span class="glyphicon glyphicon-minus"></span> 删除
+                <button type="button" class="btn btn-danger" id="deleteActivityBtn"><span class="glyphicon glyphicon-minus"></span> 删除
                 </button>
             </div>
             <div class="btn-group" style="position: relative; top: 18%;">
