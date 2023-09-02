@@ -106,10 +106,36 @@ public class ActivityController {
     }
 
     @RequestMapping("/queryActivityById.do")
-    public @ResponseBody Object queryActivityById(String id){
+    public @ResponseBody Object queryActivityById(String id) {
         //调用service层方法，查询市场活动
-        Activity activity=activityService.queryActivityById(id);
+        Activity activity = activityService.queryActivityById(id);
         //根据查询结果，返回响应信息
         return activity;
+    }
+
+    @RequestMapping("/saveEditActivity.do")
+    public @ResponseBody Object saveEditActivity(Activity activity, HttpSession session) {
+        User user = (User) session.getAttribute(Contants.SESSION_USER);
+        //封装参数
+        activity.setEditTime(DateUtils.formatDateTime(new Date()));
+        activity.setEditBy(user.getId());
+
+        ReturnObject returnObject = new ReturnObject();
+        try {
+            //调用service层方法，保存修改的市场活动
+            int ret = activityService.saveEditActivity(activity);
+
+            if (ret > 0) {
+                returnObject.setCode(Contants.RESULT_OBJECT_SUCCESS_CODE);
+            } else {
+                returnObject.setCode(Contants.RESULT_OBJECT_ERROR_CODE);
+                returnObject.setMessage("系统忙，请稍后重试....");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            returnObject.setCode(Contants.RESULT_OBJECT_ERROR_CODE);
+            returnObject.setMessage("系统忙，请稍后重试....");
+        }
+        return returnObject;
     }
 }

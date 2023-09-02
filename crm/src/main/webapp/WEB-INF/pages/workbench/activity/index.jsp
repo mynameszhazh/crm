@@ -165,37 +165,118 @@
             $("#deleteActivityBtn").click(function () {
                 //收集参数
                 //获取列表中所有被选中的checkbox
-                var chekkedIds=$("#tBody input[type='checkbox']:checked");
-                if(chekkedIds.size()==0){
+                var chekkedIds = $("#tBody input[type='checkbox']:checked");
+                if (chekkedIds.size() == 0) {
                     alert("请选择要删除的市场活动");
                     return;
                 }
 
-                if(window.confirm("确定删除吗？")){
-                    var ids="";
-                    $.each(chekkedIds,function () {//id=xxxx&id=xxx&.....&id=xxx&
-                        ids+="id="+this.value+"&";
+                if (window.confirm("确定删除吗？")) {
+                    var ids = "";
+                    $.each(chekkedIds, function () {//id=xxxx&id=xxx&.....&id=xxx&
+                        ids += "id=" + this.value + "&";
                     });
-                    ids=ids.substr(0,ids.length-1);//id=xxxx&id=xxx&.....&id=xxx
+                    ids = ids.substr(0, ids.length - 1);//id=xxxx&id=xxx&.....&id=xxx
                     console.log('ids', ids)
 
                     //发送请求
                     $.ajax({
-                        url:'workbench/activity/deleteActivityIds.do',
-                        data:ids,
-                        type:'post',
-                        dataType:'json',
-                        success:function (data) {
-                            if(data.code=="1"){
+                        url: 'workbench/activity/deleteActivityIds.do',
+                        data: ids,
+                        type: 'post',
+                        dataType: 'json',
+                        success: function (data) {
+                            if (data.code == "1") {
                                 //刷新市场活动列表,显示第一页数据,保持每页显示条数不变
-                                queryActivityByConditionForPage(1,$("#demo_pag1").bs_pagination('getOption', 'rowsPerPage'));
-                            }else{
+                                queryActivityByConditionForPage(1, $("#demo_pag1").bs_pagination('getOption', 'rowsPerPage'));
+                            } else {
                                 //提示信息
                                 alert(data.message);
                             }
                         }
                     });
                 }
+            });
+
+            //给"修改"按钮添加单击事件
+            $("#editActivityBtn").click(function () {
+                //收集参数
+                //获取列表中被选中的checkbox
+                var chkedIds = $("#tBody input[type='checkbox']:checked");
+                if (chkedIds.size() == 0) {
+                    alert("请选择要修改的市场活动");
+                    return;
+                }
+                if (chkedIds.size() > 1) {
+                    alert("每次只能修改一条市场活动");
+                    return;
+                }
+                //var id=chkedIds.val();
+                //var id=chkedIds.get(0).value;
+                var id = chkedIds[0].value;
+                //发送请求
+                $.ajax({
+                    url: 'workbench/activity/queryActivityById.do',
+                    data: {
+                        id: id
+                    },
+                    type: 'post',
+                    dataType: 'json',
+                    success: function (data) {
+                        //把市场活动的信息显示在修改的模态窗口上
+                        $("#edit-id").val(data.id);
+                        $("#edit-marketActivityOwner").val(data.owner);
+                        $("#edit-marketActivityName").val(data.name);
+                        $("#edit-startTime").val(data.startDate);
+                        $("#edit-endTime").val(data.endDate);
+                        $("#edit-cost").val(data.cost);
+                        $("#edit-description").val(data.description);
+                        //弹出模态窗口
+                        $("#editActivityModal").modal("show");
+                    }
+                });
+            });
+
+            //给"更新"按钮添加单击事件
+            $("#saveEditActivityBtn").click(function () {
+                //收集参数
+                var id = $("#edit-id").val();
+                var owner = $("#edit-marketActivityOwner").val();
+                var name = $.trim($("#edit-marketActivityName").val());
+                var startDate = $("#edit-startTime").val();
+                var endDate = $("#edit-endTime").val();
+                var cost = $.trim($("#edit-cost").val());
+                var description = $.trim($("#edit-description").val());
+                //表单验证(作业)
+
+                //发送请求
+                $.ajax({
+                    url: 'workbench/activity/saveEditActivity.do',
+                    data: {
+                        id: id,
+                        owner: owner,
+                        name: name,
+                        startDate: startDate,
+                        endDate: endDate,
+                        cost: cost,
+                        description: description
+                    },
+                    type: 'post',
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data.code == "1") {
+                            //关闭模态窗口
+                            $("#editActivityModal").modal("hide");
+                            //刷新市场活动列表,保持页号和每页显示条数都不变
+                            queryActivityByConditionForPage($("#demo_pag1").bs_pagination('getOption', 'currentPage'), $("#demo_pag1").bs_pagination('getOption', 'rowsPerPage'));
+                        } else {
+                            //提示信息
+                            alert(data.message);
+                            //模态窗口不关闭
+                            $("#editActivityModal").modal("show");
+                        }
+                    }
+                });
             });
 
         });
@@ -237,7 +318,7 @@
                     $("#tBody").html(htmlStr);
 
                     //取消"全选"按钮
-                    $("#chckAll").prop("checked",false);
+                    $("#chckAll").prop("checked", false);
 
                     //计算总页数
                     var totalPages = 1;
@@ -292,7 +373,7 @@
             <div class="modal-body">
 
                 <form id="createActivityForm" class="form-horizontal" role="form">
-
+                    <input type="hidden" id="edit-id">
                     <div class="form-group">
                         <label for="create-marketActivityOwner" class="col-sm-2 control-label">所有者<span
                                 style="font-size: 15px; color: red;">*</span></label>
@@ -311,13 +392,13 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="create-startTime" class="col-sm-2 control-label">开始日期</label>
+                        <label for="create-startDate" class="col-sm-2 control-label">开始日期</label>
                         <div class="col-sm-10" style="width: 300px;">
-                            <input type="text" class="form-control mydate" name="mydate" id="create-startTime">
+                            <input type="text" class="form-control mydate" name="mydate" id="create-startDate">
                         </div>
-                        <label for="create-endTime" class="col-sm-2 control-label">结束日期</label>
+                        <label for="create-endDate" class="col-sm-2 control-label">结束日期</label>
                         <div class="col-sm-10" style="width: 300px;">
-                            <input type="text" class="form-control mydate" name="mydate" id="create-endTime">
+                            <input type="text" class="form-control mydate" name="mydate" id="create-endDate">
                         </div>
                     </div>
                     <div class="form-group">
@@ -364,9 +445,9 @@
                                 style="font-size: 15px; color: red;">*</span></label>
                         <div class="col-sm-10" style="width: 300px;">
                             <select class="form-control" id="edit-marketActivityOwner">
-                                <option>zhangsan</option>
-                                <option>lisi</option>
-                                <option>wangwu</option>
+                                <c:forEach items="${userList}" var="u">
+                                    <option value="${u.id}">${u.name}</option>
+                                </c:forEach>
                             </select>
                         </div>
                         <label for="edit-marketActivityName" class="col-sm-2 control-label">名称<span
@@ -406,7 +487,8 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                <button type="button" class="btn btn-primary" data-dismiss="modal">更新</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" id="saveEditActivityBtn">更新
+                </button>
             </div>
         </div>
     </div>
@@ -502,10 +584,11 @@
                 <button type="button" class="btn btn-primary" id="createActivityBtn">
                     <span class="glyphicon glyphicon-plus"></span> 创建
                 </button>
-                <button type="button" class="btn btn-default" data-toggle="modal" data-target="#editActivityModal"><span
+                <button type="button" class="btn btn-default" data-toggle="modal" id="editActivityBtn"><span
                         class="glyphicon glyphicon-pencil"></span> 修改
                 </button>
-                <button type="button" class="btn btn-danger" id="deleteActivityBtn"><span class="glyphicon glyphicon-minus"></span> 删除
+                <button type="button" class="btn btn-danger" id="deleteActivityBtn"><span
+                        class="glyphicon glyphicon-minus"></span> 删除
                 </button>
             </div>
             <div class="btn-group" style="position: relative; top: 18%;">
