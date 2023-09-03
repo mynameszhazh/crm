@@ -279,6 +279,11 @@
                 });
             });
 
+            //给"批量导出"按钮添加单击事件
+            $("#exportActivityAllBtn").click(function () {
+                //发送同步请求
+                window.location.href="workbench/activity/exportAllActivitys.do";
+            });
         });
 
         function queryActivityByConditionForPage(pageNo, pageSize) {

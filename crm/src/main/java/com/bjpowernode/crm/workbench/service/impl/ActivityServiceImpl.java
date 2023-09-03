@@ -27,7 +27,7 @@ public class ActivityServiceImpl implements ActivityService {
 
     @Override
     public int queryCountOfActivityByCondition(Map<String, Object> map) {
-       return activityMapper.selectCountOfActivityByCondition(map);
+        return activityMapper.selectCountOfActivityByCondition(map);
     }
 
     @Override
@@ -44,4 +44,10 @@ public class ActivityServiceImpl implements ActivityService {
     public int saveEditActivity(Activity activity) {
         return activityMapper.updateActivity(activity);
     }
+
+    @Override
+    public List<Activity> queryAllActivitys() {
+        return activityMapper.selectAllActivitys();
+    }
+
 }
