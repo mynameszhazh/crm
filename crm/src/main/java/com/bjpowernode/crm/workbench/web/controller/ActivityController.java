@@ -3,6 +3,7 @@ package com.bjpowernode.crm.workbench.web.controller;
 import com.bjpowernode.crm.commons.contants.Contants;
 import com.bjpowernode.crm.commons.domain.ReturnObject;
 import com.bjpowernode.crm.commons.utils.DateUtils;
+import com.bjpowernode.crm.commons.utils.HSSFUtils;
 import com.bjpowernode.crm.commons.utils.UUIDUtils;
 import com.bjpowernode.crm.settings.domain.User;
 import com.bjpowernode.crm.settings.service.UserService;
@@ -16,17 +17,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 @RequestMapping("/workbench/activity")
@@ -258,6 +258,95 @@ public class ActivityController {
 
         wb.close();
         out.flush();
+    }
+
+
+    /**
+     * 配置springmvc的文件上传解析器
+     */
+    @RequestMapping("/fileUpload.do")
+    public @ResponseBody Object fileUpload(String userName, MultipartFile myFile) throws Exception {
+        //把文本数据打印到控制台
+        System.out.println("userName=" + userName);
+        //把文件在服务指定的目录中生成一个同样的文件
+        String originalFilename = myFile.getOriginalFilename();
+        File file = new File("D:\\course\\18-CRM\\阶段资料\\serverDir\\", originalFilename);//路径必须手动创建好，文件如果不存在，会自动创建
+        myFile.transferTo(file);
+
+        //返回响应信息
+        ReturnObject returnObject = new ReturnObject();
+        returnObject.setCode(Contants.RESULT_OBJECT_SUCCESS_CODE);
+        returnObject.setMessage("上传成功");
+        return returnObject;
+    }
+
+    @RequestMapping("/importActivity.do")
+    public @ResponseBody Object importActivity(MultipartFile activityFile, String userName, HttpSession session) {
+        System.out.println("userName=" + userName);
+        User user = (User) session.getAttribute(Contants.SESSION_USER);
+        ReturnObject returnObject = new ReturnObject();
+        try {
+            //把excel文件写到磁盘目录中
+            /*String originalFilename = activityFile.getOriginalFilename();
+            File file = new File("D:\\course\\18-CRM\\阶段资料\\serverDir\\", originalFilename);//路径必须手动创建好，文件如果不存在，会自动创建
+            activityFile.transferTo(file);*/
+
+            //解析excel文件，获取文件中的数据，并且封装成activityList
+            //根据excel文件生成HSSFWorkbook对象，封装了excel文件的所有信息
+            //InputStream is=new FileInputStream("D:\\course\\18-CRM\\阶段资料\\serverDir\\"+originalFilename);
+
+            InputStream is = activityFile.getInputStream();
+            HSSFWorkbook wb = new HSSFWorkbook(is);
+            //根据wb获取HSSFSheet对象，封装了一页的所有信息
+            HSSFSheet sheet = wb.getSheetAt(0);//页的下标，下标从0开始，依次增加
+            //根据sheet获取HSSFRow对象，封装了一行的所有信息
+            HSSFRow row = null;
+            HSSFCell cell = null;
+            Activity activity = null;
+            List<Activity> activityList = new ArrayList<>();
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {//sheet.getLastRowNum()：最后一行的下标
+                row = sheet.getRow(i);//行的下标，下标从0开始，依次增加
+                activity = new Activity();
+                activity.setId(UUIDUtils.getUUID());
+                activity.setOwner(user.getId());
+                activity.setCreateTime(DateUtils.formatDateTime(new Date()));
+                activity.setCreateBy(user.getId());
+
+                for (int j = 0; j < row.getLastCellNum(); j++) {//row.getLastCellNum():最后一列的下标+1
+                    //根据row获取HSSFCell对象，封装了一列的所有信息
+                    cell = row.getCell(j);//列的下标，下标从0开始，依次增加
+
+                    //获取列中的数据
+                    String cellValue = HSSFUtils.getCellValueForStr(cell);
+                    if (j == 0) {
+                        activity.setName(cellValue);
+                    } else if (j == 1) {
+                        activity.setStartDate(cellValue);
+                    } else if (j == 2) {
+                        activity.setEndDate(cellValue);
+                    } else if (j == 3) {
+                        activity.setCost(cellValue);
+                    } else if (j == 4) {
+                        activity.setDescription(cellValue);
+                    }
+                }
+
+                //每一行中所有列都封装完成之后，把activity保存到list中
+                activityList.add(activity);
+            }
+
+            //调用service层方法，保存市场活动
+            int ret = activityService.saveCreateActivityByList(activityList);
+
+            returnObject.setCode(Contants.RESULT_OBJECT_SUCCESS_CODE);
+            returnObject.setRetData(ret);
+        } catch (Exception e) {
+            e.printStackTrace();
+            returnObject.setCode(Contants.RESULT_OBJECT_ERROR_CODE);
+            returnObject.setMessage("系统忙，请稍后重试....");
+        }
+
+        return returnObject;
     }
 
 
