@@ -23,4 +23,19 @@ public interface ActivityRemarkMapper {
     int updateByPrimaryKey(ActivityRemark var1);
 
     List<ActivityRemark> selectActivityRemarkForDetailByActivityId(String var1);
+
+
+    /**
+     * 保存创建的市场活动备注
+     * @param remark
+     * @return
+     */
+    int insertActivityRemark(ActivityRemark remark);
+
+    /**
+     * 根据id删除市场活动备注
+     * @param id
+     * @return
+     */
+    int deleteActivityRemarkById(String id);
 }
