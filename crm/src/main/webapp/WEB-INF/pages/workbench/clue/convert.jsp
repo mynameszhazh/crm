@@ -46,7 +46,7 @@
 				var clueId='${clue.id}';
 				//发送请求
 				$.ajax({
-					url:'workbench/clue/queryActivityForConvertByNameClueId.do',
+					url:'workbench/clue/queryActivityForDetailByNameClueId.do',
 					data:{
 						activityName:activityName,
 						clueId:clueId
