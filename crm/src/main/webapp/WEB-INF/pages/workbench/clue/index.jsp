@@ -498,7 +498,7 @@ String basePath = request.getScheme() + "://" + request.getServerName() + ":" + 
                 <tr>
                     <td><input type="checkbox"/></td>
                     <td><a style="text-decoration: none; cursor: pointer;"
-                           onclick="window.location.href='workbench/clue/detailClue.do?id=a67c52e8702e4a4e89ab47d1751fc78b';">张三教授</a>
+                           onclick="window.location.href='workbench/clue/detailClue.do?id=87592503a2f84e82bf79b63cacf401c8';">张三教授</a>
                     </td>
                     <td>动力节点</td>
                     <td>010-84846003</td>
