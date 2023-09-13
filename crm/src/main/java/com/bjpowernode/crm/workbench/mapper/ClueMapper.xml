@@ -58,6 +58,9 @@
     delete from tbl_clue
     where id = #{id,jdbcType=CHAR}
   </delete>
+
+  <delete id="deleteClueById"></delete>
+
   <insert id="insert" parameterType="com.bjpowernode.crm.workbench.domain.Clue" >
     <!--
       WARNING - @mbggenerated

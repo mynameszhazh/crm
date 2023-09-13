@@ -70,4 +70,6 @@ public interface ClueMapper {
      * 根据id查询线索信息
      */
     Clue selectClueById(String id);
+
+    void deleteClueById(String clueId);
 }
