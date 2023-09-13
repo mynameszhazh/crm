@@ -1,6 +1,7 @@
 package com.bjpowernode.crm.workbench.mapper;
 
 import com.bjpowernode.crm.workbench.domain.Clue;
+import com.mysql.cj.exceptions.StreamingNotifiable;
 
 public interface ClueMapper {
     /**
@@ -64,4 +65,9 @@ public interface ClueMapper {
      * @return
      */
     Clue selectClueForDetailById(String id);
+
+    /**
+     * 根据id查询线索信息
+     */
+    Clue selectClueById(String id);
 }

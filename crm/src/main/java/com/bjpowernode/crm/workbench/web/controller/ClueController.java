@@ -185,4 +185,31 @@ public class ClueController {
         //请求转发
         return "workbench/clue/convert";
     }
+
+    @RequestMapping("/workbench/clue/convertClue.do")
+    public @ResponseBody Object convertClue(String clueId, String money, String name, String expectedDate, String stage, String activityId, String isCreateTran, HttpSession session) {
+        //封装参数
+        Map<String, Object> map = new HashMap<>();
+        map.put("clueId", clueId);
+        map.put("money", money);
+        map.put("name", name);
+        map.put("expectedDate", expectedDate);
+        map.put("stage", stage);
+        map.put("activityId", activityId);
+        map.put("isCreateTran", isCreateTran);
+        map.put(Contants.SESSION_USER, session.getAttribute(Contants.SESSION_USER));
+
+        ReturnObject returnObject = new ReturnObject();
+
+        try {
+            clueService.saveConvertClue(map);
+            returnObject.setCode(Contants.RESULT_OBJECT_SUCCESS_CODE);
+        } catch (Exception e) {
+            e.printStackTrace();
+            returnObject.setCode(Contants.RESULT_OBJECT_ERROR_CODE);
+            returnObject.setMessage("error");
+        }
+
+        return returnObject;
+    }
 }
